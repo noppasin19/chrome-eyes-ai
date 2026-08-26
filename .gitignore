@@ -1,0 +1,17 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary captures & logs
+*.png
+*.jpg
+*.jpeg
+*.log
+.DS_Store

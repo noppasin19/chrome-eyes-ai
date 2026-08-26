@@ -1,0 +1,12 @@
+flowchart TD
+    subgraph มนุษย์กดเอง [Human Physical Interaction]
+        H1[นิ้วเคาะคีย์บอร์ด / กดเมาส์จริง] --> H2[Chrome ตรวจจับ Hardware Event]
+        H2 --> H3[ตั้งค่า event.isTrusted = TRUE ✅]
+        H3 --> H4[GitHub ปลดล็อคปุ่มสีแดงให้กดลบได้]
+    end
+
+    subgraph AI/สคริปต์สั่ง [JavaScript Script / Extension]
+        S1[สคริปต์สั่ง element.value = '...' หรือ dispatchEvent] --> S2[Chrome ตรวจพบว่าสร้างจากสคริปต์]
+        S2 --> S3[บังคับตั้งค่า event.isTrusted = FALSE ❌]
+        S3 --> S4[GitHub บล็อก ไม่ยอม Enable ปุ่มให้ (คงสถานะ Disabled)]
+    end

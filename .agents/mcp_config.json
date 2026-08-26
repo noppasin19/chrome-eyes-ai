@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "chrome-monitor": {
+      "command": "/Users/nop/AI/multi_agents/spy_satellite/.venv/bin/python",
+      "args": [
+        "/Users/nop/AI/multi_agents/spy_satellite/.agents/skills/chrome-monitor/scripts/mcp_server.py"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      },
+      "autoApprove": [
+        "chrome_tabs",
+        "chrome_goto",
+        "chrome_click",
+        "chrome_type",
+        "chrome_dom",
+        "chrome_screenshot",
+        "chrome_inspect_all",
+        "chrome_check",
+        "chrome_text",
+        "chrome_links",
+        "chrome_scroll",
+        "chrome_select",
+        "chrome_new_tab",
+        "chrome_close_tab",
+        "chrome_switch_tab",
+        "chrome_reload",
+        "chrome_network"
+      ]
+    }
+  }
+}

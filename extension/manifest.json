@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Antigravity Chrome Monitor Bridge",
+  "version": "2.0.0",
+  "description": "Local WebSocket Bridge for Antigravity & Claude Code AI monitoring, DOM inspection, and automation.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting",
+    "storage",
+    "webRequest",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Antigravity Chrome Monitor"
+  }
+}
