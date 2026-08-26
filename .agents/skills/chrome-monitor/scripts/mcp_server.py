@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Antigravity Chrome Monitor - Model Context Protocol (MCP) Server
+Chrome Eyes AI - Model Context Protocol (MCP) Server v2.0.0
 Exposes Chrome monitoring and automation tools directly as first-class MCP tools
 for Antigravity, Claude Code, Claude Desktop, and Cursor.
 """
@@ -20,9 +20,9 @@ SERVER_SCRIPT = os.path.join(SCRIPT_DIR, "bridge_server.py")
 
 # Initialize MCP Server
 mcp = MCPServer(
-    name="chrome_monitor",
-    version="2.1.0",
-    instructions="Tools to inspect, monitor, click, type, navigate, and manage active Google Chrome tabs."
+    name="chrome_eyes_ai",
+    version="2.0.0",
+    instructions="Chrome Eyes AI v2.0.0: Tools to inspect, monitor, click, type, navigate, extract DOM, and analyze network traffic in Google Chrome."
 )
 
 def ensure_server_running():
@@ -157,7 +157,7 @@ def chrome_click(text: Optional[str] = None, selector: Optional[str] = None) -> 
 
 @mcp.tool()
 def chrome_type(text: str, selector: Optional[str] = None, enter: bool = True) -> str:
-    """Type text into an input field on the active page. Automatically focuses, triggers input events, and optionally presses Enter."""
+    """Type text into an input field on the active page. Supports React Controlled inputs with native value setters."""
     ensure_server_running()
     payload = {"text": text, "selector": selector, "enter": enter}
     with httpx2.Client(timeout=12.0) as client:
@@ -192,7 +192,7 @@ def chrome_reload(hard: bool = False) -> str:
 
 @mcp.tool()
 def chrome_network() -> str:
-    """Inspect recent network HTTP requests and API calls made by open tabs."""
+    """Inspect essential network HTTP requests and API calls with Remote IP and performance timing."""
     ensure_server_running()
     with httpx2.Client(timeout=10.0) as client:
         res = client.get(f"{SERVER_URL}/api/network").json()

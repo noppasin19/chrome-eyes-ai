@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Antigravity Chrome Monitor Bridge",
+  "name": "Chrome Eyes AI",
   "version": "2.0.0",
-  "description": "Local WebSocket Bridge for Antigravity & Claude Code AI monitoring, DOM inspection, and automation.",
+  "description": "Enterprise-grade real-time Google Chrome DOM inspector, Network monitor, and MCP Bridge for AI Agents.",
   "permissions": [
     "activeTab",
     "tabs",
@@ -19,6 +19,6 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Antigravity Chrome Monitor"
+    "default_title": "Chrome Eyes AI (v2.0.0)"
   }
 }
