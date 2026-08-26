@@ -1,12 +1,12 @@
 {
   "mcpServers": {
     "chrome-monitor": {
-      "command": "/Users/nop/AI/multi_agents/spy_satellite/.venv/bin/python",
+      "command": "/Users/nop/AI/multi_agents/chrome-eyes-ai/.venv/bin/python",
       "args": [
-        "/Users/nop/AI/multi_agents/spy_satellite/.agents/skills/chrome-monitor/scripts/mcp_server.py"
+        "/Users/nop/AI/multi_agents/chrome-eyes-ai/.agents/skills/chrome-monitor/scripts/mcp_server.py"
       ],
       "env": {
-        "PYTHONUNBUFFERED": "1"
+        "PYTHONPATH": "/Users/nop/AI/multi_agents/chrome-eyes-ai"
       },
       "autoApprove": [
         "chrome_tabs",
