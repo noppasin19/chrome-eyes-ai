@@ -5,10 +5,13 @@
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Features (v2.1.0 Enterprise Edition)
+- **Hybrid DOM & Hardware CDP Engine**: Combines lightning-fast silent DOM automation with Chrome DevTools Protocol hardware inputs.
+- **Canvas & Figma Support (`chrome_click_xy`)**: Click exact X, Y pixel coordinates on Canva, Figma, Miro, and Maps with `isTrusted=True`.
+- **Drag & Drop Simulation (`chrome_drag`)**: Move Kanban cards, resize elements, and reorder objects with natural mouse trajectories.
 - **100% Localhost & Private (`127.0.0.1`)**: Zero cloud telemetry, zero external network traffic.
 - **Works on Everyday Chrome**: Inspects and controls your existing Chrome browser with all open tabs and logins (0 browser restarts needed).
-- **17 Native MCP Tools**: First-class Model Context Protocol support with automatic tool auto-approval.
+- **20 Native MCP Tools**: First-class Model Context Protocol support with automatic tool auto-approval.
 - **Silent Background Multi-Tab Inspection**: Reads and analyzes all tabs in parallel with 0 tab switching.
 - **Privacy First (Password Protection)**: All `input[type="password"]` fields are masked as `[PROTECTED_PASSWORD]`.
 - **SPA Intelligent Retry Polling**: Automatically waits for dynamic web elements to render before clicking or typing.
@@ -19,32 +22,17 @@
 ## 🔌 Model Context Protocol (MCP) Setup
 
 ### For Antigravity & Claude Code (Workspace Config):
-The workspace configuration is located at [`mcp_config.json`](file:///Users/nop/AI/multi_agents/spy_satellite/mcp_config.json):
 ```json
 {
   "mcpServers": {
     "chrome-monitor": {
-      "command": "/Users/nop/AI/multi_agents/spy_satellite/.venv/bin/python",
+      "command": "/Users/nop/AI/multi_agents/chrome-eyes-ai/.venv/bin/python",
       "args": [
-        "/Users/nop/AI/multi_agents/spy_satellite/.agents/skills/chrome-monitor/scripts/mcp_server.py"
+        "/Users/nop/AI/multi_agents/chrome-eyes-ai/.agents/skills/chrome-monitor/scripts/mcp_server.py"
       ],
       "env": {
-        "PYTHONUNBUFFERED": "1"
+        "PYTHONPATH": "/Users/nop/AI/multi_agents/chrome-eyes-ai"
       }
-    }
-  }
-}
-```
-
-### For Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "chrome-monitor": {
-      "command": "/Users/nop/AI/multi_agents/spy_satellite/.venv/bin/python",
-      "args": [
-        "/Users/nop/AI/multi_agents/spy_satellite/.agents/skills/chrome-monitor/scripts/mcp_server.py"
-      ]
     }
   }
 }
@@ -52,7 +40,7 @@ The workspace configuration is located at [`mcp_config.json`](file:///Users/nop/
 
 ---
 
-## 🛠️ List of Available MCP Tools (17 Tools)
+## 🛠️ List of Available MCP Tools (20 Tools)
 
 | Tool Name | Parameters | Description |
 | :--- | :--- | :--- |
@@ -64,11 +52,14 @@ The workspace configuration is located at [`mcp_config.json`](file:///Users/nop/
 | `chrome_close_tab(tab_id)` | `tab_id: int` | Close a specific tab |
 | `chrome_goto(url)` | `url: str` | Navigate active tab to a new URL |
 | `chrome_screenshot(output_path, tab_id)` | `output_path: str` | Capture screenshot of tab |
-| `chrome_dom(tab_id)` | None | Extract structured DOM (Headings, buttons, inputs, links) |
+| `chrome_dom(tab_id)` | None | Extract structured DOM (Headings, buttons, inputs with X,Y) |
 | `chrome_text(tab_id)` | None | Extract clean readable text for AI summarization |
 | `chrome_links(tab_id)` | None | Extract all hyperlinks |
 | `chrome_click(text, selector)` | `text`, `selector` | Click element with SPA auto-wait & PointerEvents |
+| `chrome_click_xy(x, y)` | `x`, `y` | **[Hardware CDP]** Click exact coordinates on Canvas / Figma |
+| `chrome_drag(from_x, from_y, to_x, to_y)` | `from_x`... | **[Hardware CDP]** Drag & drop trajectory for Kanban / Objects |
 | `chrome_type(text, selector, enter)` | `text`, `selector` | Type into input with React Controlled value setter |
+| `chrome_native_type(text)` | `text` | **[Hardware CDP]** Type raw OS keystrokes for Canvas/Protected inputs |
 | `chrome_scroll(direction, amount)` | `direction`, `amount` | Scroll page (down, up, top, bottom) |
 | `chrome_select(selector, value, text)` | `selector`, `value` | Select dropdown option |
 | `chrome_reload(hard)` | `hard: bool` | Reload active tab |
@@ -81,7 +72,7 @@ The workspace configuration is located at [`mcp_config.json`](file:///Users/nop/
 1. **Install Extension in Chrome**:
    - Go to `chrome://extensions`
    - Enable **Developer mode**
-   - Click **Load unpacked** and select the `extension/` folder.
+   - Click **Load unpacked** and select the `/Users/nop/AI/multi_agents/chrome-eyes-ai/extension/` folder.
 
 2. **Install Python Dependencies**:
    ```bash

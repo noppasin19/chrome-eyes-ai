@@ -244,6 +244,51 @@ async def api_network(request):
     res = await send_command_to_extension({"action": "network"})
     return web.json_response(res)
 
+
+async def api_click_xy(request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    x = body.get("x") or request.query.get("x", 0)
+    y = body.get("y") or request.query.get("y", 0)
+    click_count = body.get("click_count", 1)
+    tab_id = body.get("tab_id")
+    cmd = {"action": "click_xy", "x": x, "y": y, "click_count": click_count}
+    if tab_id:
+        cmd["tab_id"] = tab_id
+    res = await send_command_to_extension(cmd)
+    return web.json_response(res)
+
+async def api_drag(request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    from_x = body.get("from_x", 0)
+    from_y = body.get("from_y", 0)
+    to_x = body.get("to_x", 0)
+    to_y = body.get("to_y", 0)
+    tab_id = body.get("tab_id")
+    cmd = {"action": "drag", "from_x": from_x, "from_y": from_y, "to_x": to_x, "to_y": to_y}
+    if tab_id:
+        cmd["tab_id"] = tab_id
+    res = await send_command_to_extension(cmd)
+    return web.json_response(res)
+
+async def api_native_type(request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    txt = body.get("text", "")
+    tab_id = body.get("tab_id")
+    cmd = {"action": "native_type", "text": txt}
+    if tab_id:
+        cmd["tab_id"] = tab_id
+    res = await send_command_to_extension(cmd)
+    return web.json_response(res)
+
 def create_app():
     app = web.Application()
     app.router.add_get("/ws", ws_handler)
@@ -261,6 +306,9 @@ def create_app():
     app.router.add_post("/api/scroll", api_scroll)
     app.router.add_post("/api/select", api_select)
     app.router.add_post("/api/click", api_click)
+    app.router.add_post("/api/click_xy", api_click_xy)
+    app.router.add_post("/api/drag", api_drag)
+    app.router.add_post("/api/native_type", api_native_type)
     app.router.add_post("/api/type", api_type)
     app.router.add_post("/api/goto", api_goto)
     app.router.add_get("/api/network", api_network)

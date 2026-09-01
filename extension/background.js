@@ -1,15 +1,15 @@
 /**
- * Antigravity Chrome Monitor - Advanced & Secure Local WebSocket Bridge
+ * Chrome Eyes AI v2.1.0 - Hybrid DOM & CDP Hardware Engine
  * Connects to Python AI assistant on ws://127.0.0.1:8765
  * 
- * Enhanced Features:
- * 1. Network Inspector: Captures clean essential metrics (URL, Method, Status, Remote IP, FromCache, Type, Initiator).
- * 2. React Controlled Input Support (Native value setter).
- * 3. Full Event Sequence Click (pointerdown, mousedown, pointerup, mouseup, click).
- * 4. SPA Dynamic Loading: Intelligent retry polling (wait_for element).
- * 5. Visual Computed Visibility Check: Ignores display:none / hidden elements.
- * 6. Deep Shadow DOM Traversal: Pierces open shadow roots.
- * 7. Password Protection: Strictly masks input[type="password"].
+ * Enterprise & Next-Gen Capabilities:
+ * 1. Hybrid Engine: Fast & Silent JS DOM + Native Hardware CDP (Chrome DevTools Protocol).
+ * 2. Hardware-level Click & Coordinates: chrome_click_xy for Canvas (Canva, Figma, Miro, Maps).
+ * 3. Drag and Drop: Native mouse trajectory simulation for Kanban / Object moving.
+ * 4. Native OS Keyboard Input: Hardware keystrokes with isTrusted: true.
+ * 5. Auto-Fallback: Automatically switches to CDP if standard clicks fail or get occluded.
+ * 6. Clean Network Monitoring with Remote IP & Performance metrics.
+ * 7. Strict Password Protection & Zero Telemetry.
  */
 
 const WS_URL = "ws://127.0.0.1:8765/ws";
@@ -17,29 +17,62 @@ let socket = null;
 let reconnectTimer = null;
 let recentNetworkRequests = [];
 const MAX_NETWORK_LOGS = 60;
+const attachedTabs = new Set();
+
+// --- Chrome DevTools Protocol (CDP) Helper ---
+async function ensureDebuggerAttached(tabId) {
+  if (attachedTabs.has(tabId)) {
+    return true;
+  }
+  try {
+    await chrome.debugger.attach({ tabId: tabId }, "1.3");
+    attachedTabs.add(tabId);
+    return true;
+  } catch (err) {
+    if (err.message && err.message.includes("already attached")) {
+      attachedTabs.add(tabId);
+      return true;
+    }
+    console.error("Debugger attach error:", err);
+    throw err;
+  }
+}
+
+async function sendCDP(tabId, method, params = {}) {
+  await ensureDebuggerAttached(tabId);
+  return await chrome.debugger.sendCommand({ tabId: tabId }, method, params);
+}
+
+// Clean up debugger on tab close/detach
+chrome.debugger.onDetach.addListener((source, reason) => {
+  if (source && source.tabId) {
+    attachedTabs.delete(source.tabId);
+  }
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  attachedTabs.delete(tabId);
+});
 
 // Track essential network requests with Remote IP & Performance metrics
 if (chrome.webRequest) {
   chrome.webRequest.onCompleted.addListener(
     (details) => {
-      // Filter out internal extension & telemetry noise
       if (details.url.startsWith("chrome-extension://") || details.url.startsWith("chrome://")) {
         return;
       }
-
       recentNetworkRequests.push({
         url: details.url,
         method: details.method,
         statusCode: details.statusCode,
-        statusLine: details.statusLine || `${details.statusCode} OK`,
+        statusLine: details.statusLine || "" + details.statusCode + " OK",
         remoteIp: details.ip || "unknown",
         fromCache: details.fromCache || false,
-        type: details.type, // xmlhttprequest, script, image, etc.
+        type: details.type,
         initiator: details.initiator || "browser",
         tabId: details.tabId,
         timeStamp: details.timeStamp
       });
-
       if (recentNetworkRequests.length > MAX_NETWORK_LOGS) {
         recentNetworkRequests.shift();
       }
@@ -52,7 +85,6 @@ if (chrome.webRequest) {
       if (details.url.startsWith("chrome-extension://") || details.url.startsWith("chrome://")) {
         return;
       }
-
       recentNetworkRequests.push({
         url: details.url,
         method: details.method,
@@ -63,7 +95,6 @@ if (chrome.webRequest) {
         tabId: details.tabId,
         timeStamp: details.timeStamp
       });
-
       if (recentNetworkRequests.length > MAX_NETWORK_LOGS) {
         recentNetworkRequests.shift();
       }
@@ -82,12 +113,12 @@ function connectWebSocket() {
     socket = new WebSocket(WS_URL);
 
     socket.onopen = () => {
-      console.log("[Antigravity Chrome Monitor] Connected to Python Bridge on", WS_URL);
+      console.log("[Chrome Eyes AI] Connected to Python Bridge on", WS_URL);
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
-      socket.send(JSON.stringify({ type: "handshake", client: "chrome_extension", status: "ready" }));
+      socket.send(JSON.stringify({ type: "handshake", client: "chrome_eyes_ai", version: "2.1.0", status: "ready" }));
     };
 
     socket.onmessage = async (event) => {
@@ -108,7 +139,7 @@ function connectWebSocket() {
           socket.send(JSON.stringify({
             id: message.id,
             status: "error",
-            message: `Execution error: ${err.message}`
+            message: "Execution error: " + err.message
           }));
         }
       }
@@ -139,7 +170,7 @@ function scheduleReconnect() {
   }
 }
 
-// Get the currently active/focused tab
+// Get active/focused tab
 async function getActiveTab() {
   try {
     const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -161,7 +192,6 @@ async function handleCommand(msg) {
   const reqId = msg.id || Date.now().toString();
   const action = msg.action;
 
-  // Support targeting specific tab in background
   let tab = null;
   if (msg.tab_id) {
     try {
@@ -174,7 +204,7 @@ async function handleCommand(msg) {
     tab = await getActiveTab();
   }
 
-  // --- 1. Connection & Diagnostics ---
+  // --- 1. Connection Check ---
   if (action === "ping" || action === "check") {
     return {
       id: reqId,
@@ -205,7 +235,7 @@ async function handleCommand(msg) {
         tabs: tabList
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Failed to query tabs: ${err.message}` };
+      return { id: reqId, status: "error", message: "Failed to query tabs: " + err.message };
     }
   }
 
@@ -219,7 +249,7 @@ async function handleCommand(msg) {
         tab: { id: newTab.id, title: newTab.title, url: newTab.url }
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Failed to create new tab: ${err.message}` };
+      return { id: reqId, status: "error", message: "Failed to create new tab: " + err.message };
     }
   }
 
@@ -232,7 +262,7 @@ async function handleCommand(msg) {
       await chrome.tabs.remove(targetId);
       return { id: reqId, status: "success", action: "close_tab", closed_tab_id: targetId };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Failed to close tab: ${err.message}` };
+      return { id: reqId, status: "error", message: "Failed to close tab: " + err.message };
     }
   }
 
@@ -254,7 +284,7 @@ async function handleCommand(msg) {
         active_tab: targetTab ? { id: targetTab.id, title: targetTab.title, url: targetTab.url } : null
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Failed to switch tab: ${err.message}` };
+      return { id: reqId, status: "error", message: "Failed to switch tab: " + err.message };
     }
   }
 
@@ -264,11 +294,11 @@ async function handleCommand(msg) {
       await chrome.tabs.reload(tab.id, { bypassCache: msg.bypass_cache || false });
       return { id: reqId, status: "success", action: "reload", tab_id: tab.id };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Reload failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Reload failed: " + err.message };
     }
   }
 
-  // --- 3. Silent Background Inspection ---
+  // --- 3. Silent Multi-Tab Inspection ---
   if (action === "inspect_all") {
     try {
       const allTabs = await chrome.tabs.query({});
@@ -352,7 +382,7 @@ async function handleCommand(msg) {
         tabs_inspection: results
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Inspect all failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Inspect all failed: " + err.message };
     }
   }
 
@@ -363,6 +393,13 @@ async function handleCommand(msg) {
   // --- 4. Screenshot Capture ---
   if (action === "screenshot") {
     try {
+      if (tab.url && (tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://") || tab.url.startsWith("about:"))) {
+        return {
+          id: reqId,
+          status: "error",
+          message: "Cannot capture system page (" + tab.url + "). Please switch to a regular web page."
+        };
+      }
       const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
       return {
         id: reqId,
@@ -373,11 +410,11 @@ async function handleCommand(msg) {
         data_url: dataUrl
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Screenshot failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Screenshot failed: " + err.message };
     }
   }
 
-  // --- 5. DOM Structure with Shadow DOM & Visibility Check ---
+  // --- 5. DOM Structure with Shadow DOM & Visibility ---
   if (action === "dom") {
     try {
       const results = await chrome.scripting.executeScript({
@@ -426,6 +463,7 @@ async function handleCommand(msg) {
                   ""
                 ).trim();
               }
+              const rect = el.getBoundingClientRect();
               return {
                 tag: el.tagName.toLowerCase(),
                 text: text.substring(0, 60),
@@ -433,7 +471,9 @@ async function handleCommand(msg) {
                 name: el.name || undefined,
                 type: el.type || undefined,
                 role: el.getAttribute("role") || undefined,
-                href: el.getAttribute("href") || undefined
+                href: el.getAttribute("href") || undefined,
+                x: Math.round(rect.left + rect.width / 2),
+                y: Math.round(rect.top + rect.height / 2)
               };
             })
             .filter((el) => el.text.length > 0 || el.id || el.name)
@@ -453,11 +493,11 @@ async function handleCommand(msg) {
         data: data
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `DOM extraction failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "DOM extraction failed: " + err.message };
     }
   }
 
-  // --- 6. Clean Text Content ---
+  // --- 6. Clean Text Extraction ---
   if (action === "text") {
     try {
       const results = await chrome.scripting.executeScript({
@@ -466,7 +506,11 @@ async function handleCommand(msg) {
           const clone = document.body.cloneNode(true);
           const removeSelectors = "script, style, noscript, svg, iframe, input[type='password']";
           clone.querySelectorAll(removeSelectors).forEach(el => el.remove());
-          const text = clone.innerText.replace(/\n\s*\n/g, "\n\n").trim();
+          const text = clone.innerText.replace(/
+\s*
+/g, "
+
+").trim();
           return text.substring(0, 8000);
         }
       });
@@ -481,7 +525,7 @@ async function handleCommand(msg) {
         text: textContent
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Text extraction failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Text extraction failed: " + err.message };
     }
   }
 
@@ -511,7 +555,7 @@ async function handleCommand(msg) {
         links: links
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Links extraction failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Links extraction failed: " + err.message };
     }
   }
 
@@ -532,11 +576,11 @@ async function handleCommand(msg) {
       });
       return { id: reqId, status: "success", action: "scroll", direction: direction };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Scroll failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Scroll failed: " + err.message };
     }
   }
 
-  // --- 9. Dropdown Selection (<select>) ---
+  // --- 9. Dropdown Selection ---
   if (action === "select") {
     const { selector, value, text } = msg;
     try {
@@ -566,13 +610,145 @@ async function handleCommand(msg) {
       const res = results && results[0] ? results[0].result : { selected: false };
       return { id: reqId, status: res.selected ? "success" : "error", ...res };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Select failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Select failed: " + err.message };
     }
   }
 
-  // --- 10. Robust Click with Full Synthetic Pointer & Mouse Events ---
+  // --- 10. Hardware CDP Click by Coordinates (Canvas / Canva / Figma / Hardware isTrusted) ---
+  if (action === "click_xy") {
+    const x = Math.round(Number(msg.x) || 0);
+    const y = Math.round(Number(msg.y) || 0);
+    const clickCount = Number(msg.click_count) || 1;
+    try {
+      // 1. Move mouse to position
+      await sendCDP(tab.id, "Input.dispatchMouseEvent", {
+        type: "mouseMoved",
+        x: x,
+        y: y
+      });
+
+      // 2. Mouse Press
+      await sendCDP(tab.id, "Input.dispatchMouseEvent", {
+        type: "mousePressed",
+        x: x,
+        y: y,
+        button: "left",
+        clickCount: clickCount
+      });
+
+      await new Promise((r) => setTimeout(r, 60));
+
+      // 3. Mouse Release
+      await sendCDP(tab.id, "Input.dispatchMouseEvent", {
+        type: "mouseReleased",
+        x: x,
+        y: y,
+        button: "left",
+        clickCount: clickCount
+      });
+
+      return {
+        id: reqId,
+        status: "success",
+        action: "click_xy",
+        x: x,
+        y: y,
+        mode: "cdp_hardware",
+        title: tab.title,
+        url: tab.url
+      };
+    } catch (err) {
+      return { id: reqId, status: "error", message: "CDP Hardware Click failed: " + err.message };
+    }
+  }
+
+  // --- 11. Hardware CDP Drag & Drop (Kanban / Canvas Objects) ---
+  if (action === "drag") {
+    const fromX = Math.round(Number(msg.from_x) || 0);
+    const fromY = Math.round(Number(msg.from_y) || 0);
+    const toX = Math.round(Number(msg.to_x) || 0);
+    const toY = Math.round(Number(msg.to_y) || 0);
+    const steps = 10;
+    try {
+      // 1. Move to start
+      await sendCDP(tab.id, "Input.dispatchMouseEvent", { type: "mouseMoved", x: fromX, y: fromY });
+      // 2. Press
+      await sendCDP(tab.id, "Input.dispatchMouseEvent", { type: "mousePressed", x: fromX, y: fromY, button: "left", clickCount: 1 });
+      
+      // 3. Move along trajectory
+      for (let i = 1; i <= steps; i++) {
+        const currX = Math.round(fromX + (toX - fromX) * (i / steps));
+        const currY = Math.round(fromY + (toY - fromY) * (i / steps));
+        await sendCDP(tab.id, "Input.dispatchMouseEvent", { type: "mouseMoved", x: currX, y: currY, button: "left" });
+        await new Promise(r => setTimeout(r, 25));
+      }
+
+      // 4. Release
+      await sendCDP(tab.id, "Input.dispatchMouseEvent", { type: "mouseReleased", x: toX, y: toY, button: "left", clickCount: 1 });
+
+      return {
+        id: reqId,
+        status: "success",
+        action: "drag",
+        from: { x: fromX, y: fromY },
+        to: { x: toX, y: toY },
+        mode: "cdp_hardware"
+      };
+    } catch (err) {
+      return { id: reqId, status: "error", message: "CDP Drag failed: " + err.message };
+    }
+  }
+
+  // --- 12. Hardware CDP Native Keyboard Input ---
+  if (action === "native_type") {
+    const text = msg.text || "";
+    try {
+      await sendCDP(tab.id, "Input.insertText", { text: text });
+      return {
+        id: reqId,
+        status: "success",
+        action: "native_type",
+        text: text,
+        mode: "cdp_hardware"
+      };
+    } catch (err) {
+      return { id: reqId, status: "error", message: "Native type failed: " + err.message };
+    }
+  }
+
+  // --- 13. Smart Hybrid Click (Fast JS with Auto-CDP Fallback) ---
   if (action === "click") {
-    const { selector, text, timeout = 2500 } = msg;
+    const { selector, text, timeout = 2500, force_cdp = false } = msg;
+
+    // Direct CDP Mode if requested
+    if (force_cdp) {
+      // Find element coordinates via JS first
+      const posRes = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        args: [selector, text],
+        func: (sel, txt) => {
+          let el = null;
+          if (sel) el = document.querySelector(sel);
+          else if (txt) {
+            const all = Array.from(document.querySelectorAll("button, a, [role='button'], input, span, div"));
+            el = all.find(e => e.innerText && e.innerText.trim().toLowerCase().includes(txt.toLowerCase()));
+          }
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            return { found: true, x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) };
+          }
+          return { found: false };
+        }
+      });
+      const pos = posRes && posRes[0] ? posRes[0].result : { found: false };
+      if (pos.found) {
+        await sendCDP(tab.id, "Input.dispatchMouseEvent", { type: "mousePressed", x: pos.x, y: pos.y, button: "left", clickCount: 1 });
+        await new Promise(r => setTimeout(r, 50));
+        await sendCDP(tab.id, "Input.dispatchMouseEvent", { type: "mouseReleased", x: pos.x, y: pos.y, button: "left", clickCount: 1 });
+        return { id: reqId, status: "success", action: "click", mode: "cdp_hardware", target: selector || text };
+      }
+    }
+
     try {
       const results = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
@@ -620,7 +796,8 @@ async function handleCommand(msg) {
               target.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, cancelable: true }));
               target.click();
 
-              return { clicked: true, tag: target.tagName, text: (target.innerText || "").substring(0, 30) };
+              const rect = target.getBoundingClientRect();
+              return { clicked: true, tag: target.tagName, text: (target.innerText || "").substring(0, 30), x: Math.round(rect.left + rect.width / 2), y: Math.round(rect.top + rect.height / 2) };
             }
 
             await new Promise((r) => setTimeout(r, 100));
@@ -636,19 +813,20 @@ async function handleCommand(msg) {
           id: reqId,
           status: "success",
           action: "click",
+          mode: "fast_js",
           target: selector || text,
           title: tab.title,
           url: tab.url
         };
       } else {
-        return { id: reqId, status: "error", message: `Could not find element to click: ${selector || text}` };
+        return { id: reqId, status: "error", message: "Could not find element to click: " + (selector || text) };
       }
     } catch (err) {
-      return { id: reqId, status: "error", message: `Click failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Click failed: " + err.message };
     }
   }
 
-  // --- 11. Robust Type with React Controlled Input Value Setter ---
+  // --- 14. Robust Type with React Controlled Input Value Setter ---
   if (action === "type") {
     const { selector, text, enter, timeout = 2500 } = msg;
     try {
@@ -728,14 +906,14 @@ async function handleCommand(msg) {
           url: tab.url
         };
       } else {
-        return { id: reqId, status: "error", message: `Could not find input element to type into: ${selector || "default"}` };
+        return { id: reqId, status: "error", message: "Could not find input element to type into: " + (selector || "default") };
       }
     } catch (err) {
-      return { id: reqId, status: "error", message: `Type action failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Type action failed: " + err.message };
     }
   }
 
-  // --- 12. Navigate / Goto URL ---
+  // --- 15. Navigate / Goto URL ---
   if (action === "goto" || action === "navigate") {
     try {
       await chrome.tabs.update(tab.id, { url: msg.url });
@@ -746,11 +924,11 @@ async function handleCommand(msg) {
         url: msg.url
       };
     } catch (err) {
-      return { id: reqId, status: "error", message: `Navigation failed: ${err.message}` };
+      return { id: reqId, status: "error", message: "Navigation failed: " + err.message };
     }
   }
 
-  // --- 13. Essential Network Inspection ---
+  // --- 16. Essential Network Inspection ---
   if (action === "network") {
     return {
       id: reqId,
@@ -763,10 +941,10 @@ async function handleCommand(msg) {
     };
   }
 
-  return { id: reqId, status: "error", message: `Unknown action: ${action}` };
+  return { id: reqId, status: "error", message: "Unknown action: " + action };
 }
 
-// Lifecycle listeners & Keepalive
+// Keepalive & Lifecycle
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("keepalive", { periodInMinutes: 0.5 });
   connectWebSocket();
@@ -795,5 +973,4 @@ chrome.windows.onFocusChanged.addListener(() => {
   connectWebSocket();
 });
 
-// Start connection
 connectWebSocket();

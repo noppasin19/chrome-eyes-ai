@@ -21,8 +21,8 @@ SERVER_SCRIPT = os.path.join(SCRIPT_DIR, "bridge_server.py")
 # Initialize MCP Server
 mcp = MCPServer(
     name="chrome_eyes_ai",
-    version="2.0.0",
-    instructions="Chrome Eyes AI v2.0.0: Tools to inspect, monitor, click, type, navigate, extract DOM, and analyze network traffic in Google Chrome."
+    version="2.1.0",
+    instructions="Chrome Eyes AI v2.1.0: Hybrid DOM & Hardware CDP tools to inspect, monitor, click (DOM & XY coordinates), drag & drop, type, and analyze Chrome. Tools to inspect, monitor, click, type, navigate, extract DOM, and analyze network traffic in Google Chrome."
 )
 
 def ensure_server_running():
@@ -196,6 +196,54 @@ def chrome_network() -> str:
     ensure_server_running()
     with httpx2.Client(timeout=10.0) as client:
         res = client.get(f"{SERVER_URL}/api/network").json()
+    return json.dumps(res, indent=2, ensure_ascii=False)
+
+
+@mcp.tool()
+def chrome_click_xy(x: int, y: int, click_count: int = 1, tab_id: Optional[int] = None) -> str:
+    """[CRITICAL FOR CANVAS, FIGMA & CANVA] Click exact X, Y screen coordinates using Hardware CDP (isTrusted=True).
+    USE THIS TOOL WHEN:
+    1. Clicking on Canvas elements (Canva, Figma, Miro, Google Maps, Flutter Web, TradingView).
+    2. Clicking visual elements from screenshot coordinates where HTML buttons do not exist.
+    3. Normal chrome_click() failed due to overlays, modals, or anti-bot protections.
+    """
+    ensure_server_running()
+    payload = {"x": x, "y": y, "click_count": click_count}
+    if tab_id:
+        payload["tab_id"] = tab_id
+    with httpx2.Client(timeout=12.0) as client:
+        res = client.post(f"{SERVER_URL}/api/click_xy", json=payload).json()
+    return json.dumps(res, indent=2, ensure_ascii=False)
+
+@mcp.tool()
+def chrome_drag(from_x: int, from_y: int, to_x: int, to_y: int, tab_id: Optional[int] = None) -> str:
+    """[DRAG & DROP] Perform a smooth hardware mouse drag-and-drop from (from_x, from_y) to (to_x, to_y).
+    USE THIS TOOL WHEN:
+    1. Moving Kanban cards (Trello, Jira, GitHub Projects).
+    2. Resizing visual elements or dragging objects on Canvas/Figma.
+    3. Dragging sliders or reordering lists.
+    """
+    ensure_server_running()
+    payload = {"from_x": from_x, "from_y": from_y, "to_x": to_x, "to_y": to_y}
+    if tab_id:
+        payload["tab_id"] = tab_id
+    with httpx2.Client(timeout=15.0) as client:
+        res = client.post(f"{SERVER_URL}/api/drag", json=payload).json()
+    return json.dumps(res, indent=2, ensure_ascii=False)
+
+@mcp.tool()
+def chrome_native_type(text: str, tab_id: Optional[int] = None) -> str:
+    """[HARDWARE KEYBOARD INPUT] Type raw text using Chrome DevTools Protocol at the OS engine level.
+    USE THIS TOOL WHEN:
+    1. Typing into Canvas/Figma text boxes or complex rich-text editors.
+    2. Normal chrome_type() failed or got intercepted by strict security controls.
+    """
+    ensure_server_running()
+    payload = {"text": text}
+    if tab_id:
+        payload["tab_id"] = tab_id
+    with httpx2.Client(timeout=12.0) as client:
+        res = client.post(f"{SERVER_URL}/api/native_type", json=payload).json()
     return json.dumps(res, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":

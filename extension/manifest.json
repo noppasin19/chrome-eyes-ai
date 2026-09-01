@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Chrome Eyes AI",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Enterprise-grade real-time Google Chrome DOM inspector, Network monitor, and MCP Bridge for AI Agents.",
   "permissions": [
     "activeTab",
@@ -9,7 +9,8 @@
     "scripting",
     "storage",
     "webRequest",
-    "alarms"
+    "alarms",
+    "debugger"
   ],
   "host_permissions": [
     "<all_urls>"
