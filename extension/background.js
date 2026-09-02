@@ -506,11 +506,7 @@ async function handleCommand(msg) {
           const clone = document.body.cloneNode(true);
           const removeSelectors = "script, style, noscript, svg, iframe, input[type='password']";
           clone.querySelectorAll(removeSelectors).forEach(el => el.remove());
-          const text = clone.innerText.replace(/
-\s*
-/g, "
-
-").trim();
+          const text = clone.innerText.replace(/[\r\n]{2,}/g, "\n\n").trim();
           return text.substring(0, 8000);
         }
       });
