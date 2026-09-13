@@ -1,2 +1,3 @@
-#!/bin/bash
-exec "/Users/nop/AI/multi_agents/spy_satellite/.venv/bin/python3" "/Users/nop/AI/multi_agents/spy_satellite/.agents/skills/chrome-monitor/scripts/native_host.py"
+#!/usr/bin/env bash
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$DIR/native_host.py"

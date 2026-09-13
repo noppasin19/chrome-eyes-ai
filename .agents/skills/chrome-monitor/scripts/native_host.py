@@ -1,4 +1,4 @@
-#!/Users/nop/AI/multi_agents/spy_satellite/.venv/bin/python3
+#!/usr/bin/env python3
 """
 Chrome Native Messaging Host for Antigravity & Claude Code
 Spawned automatically by Google Chrome when the extension connects.

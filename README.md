@@ -26,12 +26,12 @@
 {
   "mcpServers": {
     "chrome-monitor": {
-      "command": "/Users/nop/AI/multi_agents/chrome-eyes-ai/.venv/bin/python",
+      "command": "/path/to/chrome-eyes-ai/.venv/bin/python",
       "args": [
-        "/Users/nop/AI/multi_agents/chrome-eyes-ai/.agents/skills/chrome-monitor/scripts/mcp_server.py"
+        "/path/to/chrome-eyes-ai/.agents/skills/chrome-monitor/scripts/mcp_server.py"
       ],
       "env": {
-        "PYTHONPATH": "/Users/nop/AI/multi_agents/chrome-eyes-ai"
+        "PYTHONPATH": "/path/to/chrome-eyes-ai"
       }
     }
   }
@@ -72,7 +72,7 @@
 1. **Install Extension in Chrome**:
    - Go to `chrome://extensions`
    - Enable **Developer mode**
-   - Click **Load unpacked** and select the `/Users/nop/AI/multi_agents/chrome-eyes-ai/extension/` folder.
+   - Click **Load unpacked** and select the `extension/` folder inside this repository.
 
 2. **Install Python Dependencies**:
    ```bash

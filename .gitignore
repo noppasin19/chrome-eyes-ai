@@ -15,3 +15,12 @@ __pycache__/
 *.jpeg
 *.log
 .DS_Store
+
+# Local MCP Configurations & Credentials
+mcp_config.json
+.agents/mcp_config.json
+
+# Local AI / IDE workspace settings
+.claude/
+.vscode/
+.idea/
